@@ -7,7 +7,7 @@ import pytest
 import subprocess
 
 @pytest.fixture
-def driver():
+def driver(request):
     driver = webdriver.Chrome()
     yield driver
     driver.quit()
@@ -45,22 +45,30 @@ def logout(driver):
         login_page_element = WebDriverWait(driver, 3).until(
             EC.presence_of_element_located((By.XPATH, "//button[contains(text(),'Đăng nhập')]"))
         )
-        assert login_page_element.is_displayed(), "Đăng xuất thành công - Pass"
+        assert login_page_element.is_displayed()
+        print("Đăng xuất thành công - Pass")
 
         time.sleep(2)
 
     except Exception as e:
         pytest.fail(f"Đăng xuất thất bại - {e}")
 
-def test_login_and_logout(driver):
+def test_logout(driver):
     login(driver, "Hungqb", "1")
     logout(driver)
 
-def run_tests():
-    # Chạy câu lệnh pytest để thực hiện test và tạo báo cáo HTML
-    result = subprocess.run(['pytest', '--html=test_reports/report_Logout.html', __file__], capture_output=True, text=True)
+def test_login_page_after_logout(driver):
+    login(driver, "Hungqb", "1")
+    logout(driver)
 
-    # Hiển thị kết quả trên terminal
+    login_page_element = WebDriverWait(driver, 3).until(
+        EC.presence_of_element_located((By.XPATH, "//button[contains(text(),'Đăng nhập')]"))
+    )
+    assert login_page_element.is_displayed()
+    print("Hiển thị trang đăng nhập sau khi đăng xuất - Pass")
+
+def run_tests():
+    result = subprocess.run(['pytest', '--html=test_reports/report_Logout.html', __file__], capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)
 

@@ -12,13 +12,22 @@ def driver():
     driver.quit()
 
 @pytest.mark.parametrize("username, password, case_number", [
+    #Case 1: Đăng nhập thành công
     ("Hungqb", "1", 1),
+    #Case 2: Nhập sai username
     ("nonexistent_user", "1", 2),
+    #Case 3: Nhập sai password
     ("Hungqb", "2", 3),
+    #Case 4: Không nhập username
     ("", "1", 4),
+    #Case 5: Không nhập password
     ("Hungqb", "", 5),
+    #Case 6: Bấm btn đăng nhập mà không nhập gì
     ("", "", 6),
+    #Case 7: Nhập username là kí tự đặc biệt
     ("special_chars!@#", "1", 7),
+    # Case 8: Kiểm tra hiển thị dấu chấm khi nhập password
+    ("Hungqb", "hidden_password", 8),
 ])
 def test_login(driver, username, password, case_number):
     url = "http://192.168.110.16:3081/#/login?returnUrl=%2F"
@@ -29,6 +38,16 @@ def test_login(driver, username, password, case_number):
     login_button = driver.find_element(By.XPATH, "//button[contains(text(),'Đăng nhập')]")
 
     username_input.send_keys(username)
+    # Kiểm tra hiển thị dấu chấm khi nhập password
+    if password in password:
+        password_type = password_input.get_attribute("type")
+        assert password_type == "password"
+
+        # Thêm câu thông báo tương ứng
+        if password_type == "password":
+            print(f"Case {case_number}: Password hiển thị dưới dạng dấu chấm.")
+        else:
+            pytest.fail(f"Case {case_number}: Password không hiển thị dưới dạng dấu chấm.")
     password_input.send_keys(password)
     login_button.click()
 
@@ -36,7 +55,8 @@ def test_login(driver, username, password, case_number):
         dashboard_element = WebDriverWait(driver, 3).until(
             EC.presence_of_element_located((By.XPATH, "//h3[normalize-space()='Dashboard Page']"))
         )
-        assert dashboard_element.is_displayed(), f"Case {case_number}: Đăng nhập thành công - Pass (Username: {username}, Password: {password})"
+        assert dashboard_element.is_displayed()
+        print(f"Case {case_number}: Đăng nhập thành công - Pass (Username: {username}, Password: {password})")
     except:
         error_messages_danger = driver.find_elements(By.XPATH,
                                                     "//div[contains(@class, 'alert alert-danger ng-star-inserted')]")
